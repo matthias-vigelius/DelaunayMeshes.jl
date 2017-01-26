@@ -1,15 +1,9 @@
-using Base.Test
-
-import DelaunayMesh
-import TestHelpers
-import DiffEqPDEBase
-
 import Winston
 
 @testset "DelaunayMeshTests" begin
   @testset "AddConstraint" begin
-    local mesh = DelaunayMesh.Mesh()
-    DelaunayMesh.SetBoundingBox(mesh, [-15.0, 15.0, -15.0, 15.0])
+    local mesh = DelaunayMeshes.Mesh()
+    DelaunayMeshes.setboundingbox(mesh, [-15.0, 15.0, -15.0, 15.0])
     # seed rng and store seed in file
     local seed = 4139605370
     #local seed = rand(UInt32)
@@ -35,7 +29,7 @@ import Winston
     push!(mesh, innerRing)
     push!(mesh, outerRing)
 
-    local faultyTriangles = TestHelpers.testdelaunayness(mesh.tesselation)
+    local faultyTriangles = testdelaunayness(mesh.tesselation)
     @test length(faultyTriangles) == 0
     @test length(mesh.tesselation.vertices) == (nvertices + 3 + 2*nringvertices)
 
@@ -43,28 +37,29 @@ import Winston
     local innerConstraintVertexList = [x for x in (nvertices+3+nringvertices):-1:(nvertices+3+1)]
     local outerConstraintVertexList = [x for x in (nvertices+3+nringvertices+1):(nvertices + 3 + 2*nringvertices)]
 
-    DelaunayMesh.AddConstraint!(mesh, innerConstraintVertexList)
-    DelaunayMesh.AddConstraint!(mesh, outerConstraintVertexList)
+    DelaunayMeshes.addconstraint!(mesh, innerConstraintVertexList)
+    DelaunayMeshes.addconstraint!(mesh, outerConstraintVertexList)
 
     # check that constraints are in
     local innerConstrMatrix = [innerConstraintVertexList'; circshift(innerConstraintVertexList, -1)']'
     local outerConstrMatrix = [outerConstraintVertexList'; circshift(outerConstraintVertexList, -1)']'
     local constraints = [innerConstrMatrix; outerConstrMatrix]
 
-    TestHelpers.validateconstraints(mesh.tesselation, constraints)
-    TestHelpers.testvertexcache(mesh.tesselation)
+    validateconstraints(mesh.tesselation, constraints)
+    testvertexcache(mesh.tesselation)
 
     # get voronoiVertices
-    local vorVert = DelaunayMesh.GetVoronoiVertices(mesh)
+    local vorVert = DelaunayMeshes.getvoronoivertices(mesh)
 
     # mark all that are between inner and outer circle
-    local unScaledVorVert = DelaunayMesh.UnScalePoints(mesh, vorVert)
+    local unScaledVorVert = DelaunayMeshes.unscalepoints(mesh, vorVert)
     local unScaledSquare = unScaledVorVert.*unScaledVorVert
     local rVor = sqrt(unScaledSquare[:,1] + unScaledSquare[:,2])
     local interiorVerticesBool = (rVor .>= rinner * ones(rVor)) & (rVor .<= router * ones(rVor))
 
     # plot it
-    xc, yc = Triangulation.GetDelaunayCoordinates(mesh.tesselation)
+    #=
+    xc, yc = DelaunayMeshes.getdelaunaycoordinates(mesh.tesselation)
     p = Winston.FramedPlot(aspect_ratio=1
       #,xrange=[1.496 1.50], yrange=[1.256, 1.26]
       )
@@ -74,6 +69,7 @@ import Winston
       vorVert[mesh.faceLocation,1], vorVert[mesh.faceLocation,2],
       kind="circle", color="red"))
     Winston.savefig(p, "AddConstraint.svg")
+    =#
 
     # check that this agrees with the interior array of the triangulation
     @test length(interiorVerticesBool) == length(mesh.faceLocation)
@@ -91,7 +87,7 @@ import Winston
   end
 
   @testset "FindConstrainedTriangles" begin
-    local mesh = DelaunayMesh.Mesh()
+    local mesh = DelaunayMeshes.Mesh()
 
     # seed rng and store seed in file
     #local seed = 2572853444
@@ -119,7 +115,7 @@ import Winston
     ]
     push!(mesh, constraintVertices)
 
-    local faultyTriangles = TestHelpers.testdelaunayness(mesh.tesselation)
+    local faultyTriangles = testdelaunayness(mesh.tesselation)
     #=
     if (length(faultyTriangles) > 0)
       for f in faultyTriangles
@@ -146,24 +142,24 @@ import Winston
       n+8 n+1;
     ]
     for i=1:size(constraints, 1)
-      Triangulation.DelaunayMeshes.insertconstraint!(mesh.tesselation, constraints[i, 1], constraints[i,2])
+      DelaunayMeshes.insertconstraint!(mesh.tesselation, constraints[i, 1], constraints[i,2])
     end
 
-    TestHelpers.validateconstraints(mesh.tesselation, constraints)
-    TestHelpers.testvertexcache(mesh.tesselation)
+    validateconstraints(mesh.tesselation, constraints)
+    testvertexcache(mesh.tesselation)
 
     # get voronoiVertices
-    local vorVert = DelaunayMesh.GetVoronoiVertices(mesh)
+    local vorVert = DelaunayMeshes.getvoronoivertices(mesh)
 
     # get faces in connected region
-    local startEdge = TestHelpers.findedgeconnectingvertices(mesh.tesselation, n+1, n+2)
-    local startDualEdge = sym(Rot(startEdge))
-    local connectedVertices = DelaunayMesh.GetFacesInsideRegion(mesh, startDualEdge)
+    local startEdge = findedgeconnectingvertices(mesh.tesselation, n+1, n+2)
+    local startDualEdge = DelaunayMeshes.sym(DelaunayMeshes.rot(startEdge))
+    local connectedVertices = DelaunayMeshes.getfacesinsideregion(mesh, startDualEdge)
     local connectedBool = fill(false, size(mesh.tesselation.faces, 1))
     connectedBool[connectedVertices] = true
 
     # get all faces inside constraint for comparison
-    local insideConstraint = TestHelpers.PointsInConstrainedRegion(mesh, vorVert)
+    local insideConstraint = pointsinconstrainedregion(mesh, vorVert)
 
     @test connectedBool == insideConstraint
 
@@ -179,7 +175,7 @@ import Winston
   end
 
   @testset "push" begin
-    local mesh = DelaunayMesh.Mesh()
+    local mesh = DelaunayMeshes.Mesh()
 
     # seed rng and store seed in file
     #local seed = 1985005665
@@ -194,7 +190,7 @@ import Winston
     # push some random vertices
     srand(seed)
     local nvertices = 200
-    local points = TestHelpers.GetRandomNumbersInsideBoundingBox(testBB, nvertices)
+    local points = getrandomnumbersinsideboundingbox(testBB, nvertices)
     push!(mesh, points)
 
     # check they are inside bounding box
@@ -216,7 +212,7 @@ import Winston
       minimum(points[:,2]), maximum(points[:,2]),
     ]
 
-    local morePoints = TestHelpers.GetRandomNumbersInsideBoundingBox(smallBB, nvertices)
+    local morePoints = getrandomnumbersinsideboundingbox(smallBB, nvertices)
     push!(mesh, morePoints)
 
     # check they are still inside bounding box

@@ -16,4 +16,7 @@ include("QuadEdge.jl")
 include("Triangulation.jl")
 include("DelaunayMesh.jl")
 
+export getvoronoivertices, setboundingbox
+export scalepoints, unscalepoints, addconstraint!
+export getdelaunaycoordinates
 end # module

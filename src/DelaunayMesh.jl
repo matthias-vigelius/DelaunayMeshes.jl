@@ -75,7 +75,7 @@ function getvoronoivertices(mesh::Mesh)
     if get(mesh.voronoiVertices)[curFace, :] == [Inf, Inf]
       local curFaceEdge = rot(ei)
       local curFaceVertexIndices =
-       lfaceVertices(mesh.tesselation, curFaceEdge)
+       lface_vertices(mesh.tesselation, curFaceEdge)
       local curFaceVertexCoordinates =
        map((i::Int) -> mesh.tesselation.vertices[i], curFaceVertexIndices)
       local baryCenter = sum(curFaceVertexCoordinates)/3.
@@ -129,7 +129,7 @@ function push!(mesh::Mesh, points::Array{Float64, 2})
   local maxY = maximum(points[:,2])
 
   if isnull(mesh.boundingBox)
-    SetBoundingBox(mesh, [minX, maxX, minY, maxY])
+    setboundingbox(mesh, [minX, maxX, minY, maxY])
   else
     @assert (minX >= get(mesh.boundingBox)[1])
     @assert (maxX <= get(mesh.boundingBox)[2])

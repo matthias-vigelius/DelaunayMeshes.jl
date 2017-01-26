@@ -149,7 +149,7 @@ end
 function pointsinconstrainedregion(
   mesh::DelaunayMeshes.Mesh, points::Array{Float64, 2})
 
-  local sb = DelaunayMesh.scalepoints(mesh,
+  local sb = DelaunayMeshes.scalepoints(mesh,
     [
       -1.0 -1.0;
       -0.5 -1.0;
