@@ -1,4 +1,4 @@
-import Winston
+#import Winston
 
 @testset "DelaunayMeshTests" begin
   @testset "AddConstraint" begin

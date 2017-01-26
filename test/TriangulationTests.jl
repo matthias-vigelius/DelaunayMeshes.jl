@@ -1,5 +1,5 @@
 import GeometricalPredicates
-import Winston
+#import Winston
 
 # turn off matplotlib's gui
 #PyPlot.pygui(false)
@@ -245,6 +245,7 @@ import Winston
        [1.375, 1.25],
        [1.5,1.5])
 
+    #=
     # plot it
     xc, yc = getplotedges(tess)
     local vertexPoints = reduce(hcat, tess.vertices)'
@@ -254,6 +255,7 @@ import Winston
     Winston.add(p, Winston.Points(vertexPoints[:,1], vertexPoints[:,2], kind="circle", color="red"))
     Winston.add(p, Winston.Curve(xc, yc))
     Winston.savefig(p, "DeleteEdge.svg")
+    =#
 
     local e25 = findedgeconnectingvertices(tess, 4, 5)
     DelaunayMeshes.deleteedge!(tess, e25)
