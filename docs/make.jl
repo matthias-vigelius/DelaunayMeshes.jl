@@ -2,12 +2,10 @@ using Documenter
 
 push!(LOAD_PATH, "..\\src\\")
 
-using QuadEdge
-using Triangulation
-
+using DelaunayMeshes
 
 makedocs(
   format = :html,
-  sitename = "DelaunayTriangulation",
-  pages = ["index.md"]
+  sitename = "DelaunayMeshes",
+  pages = ["User Guide" => "UserGuide.md", "API" => "index.md"]
 )
