@@ -29,7 +29,7 @@ function DelaunayTesselation()
   local v3 = convert(Point, [minX + 0.5 * deltaX, maxX])
   local innerFace = convert(Point, (1./3.)*(v1 + v2 + v3))
   local outerFace = convert(Point, [Inf, Inf])
-  local sd = CreateSubDivision(v1, v2, v3, innerFace, outerFace)
+  local sd = create_subdivision(v1, v2, v3, innerFace, outerFace)
 
   return sd
 end
@@ -76,7 +76,7 @@ function getdelaunaycoordinates(sd::DelaunayTesselation)
 end
 
 """
-    swap(sd::DelaunayTesselation, ei::Int)
+    swap!(sd::DelaunayTesselation, ei::Int)
 
 Swaps edge `ei` such that the new edge connects the apexes of the triangles
 adjacent to the old edge.
@@ -85,7 +85,7 @@ adjacent to the old edge.
 * Specifially, if `a = oprev(ei)` and `b = oprev(sym(ei))` before the swap, then
   the edge `ei` will connect `dest(a)` with `dest(b)` after the swap.
 """
-function swap(sd::DelaunayTesselation, ei::Int)
+function swap!(sd::DelaunayTesselation, ei::Int)
   local es = sym(ei)
   local a = oprev(sd, ei)
   local b = oprev(sd, es)
@@ -96,10 +96,10 @@ function swap(sd::DelaunayTesselation, ei::Int)
   sd.vertexCache[org(sd, ei)] = a
   sd.vertexCache[org(sd, es)] = b
 
-  splice(sd, ei, a)
-  splice(sd, es, b)
-  splice(sd, ei, (lnext(sd, a)))
-  splice(sd, es, (lnext(sd, b)))
+  splice!(sd, ei, a)
+  splice!(sd, es, b)
+  splice!(sd, ei, (lnext(sd, a)))
+  splice!(sd, es, (lnext(sd, b)))
   endpoints!(sd, ei, dest(sd, a), dest(sd, b), leftFaceIndex, rightFaceIndex)
 
   #update faces of adjacent triangles
@@ -295,13 +295,13 @@ end
 
 function insertnewvertex!(sd::DelaunayTesselation, e0::Int, vi::Int)
   # add new edge
-  local bi = MakeEdge!(sd)
+  local bi = makeedge!(sd)
   local se = bi
   local oldFace = lface(sd, e0)
   endpoints!(sd, bi, org(sd, e0), vi, oldFace, oldFace)
 
   # connect new edge to enclosing edges
-  splice(sd, bi, e0)
+  splice!(sd, bi, e0)
 
   local nei = e0
   local bni = bi
@@ -398,15 +398,15 @@ function restoredelaunay!(sd::DelaunayTesselation, startEdge::Int, stopEdge::Int
     #print("$curEdge: $eo $td $ed $xi $(incircle(sd, eo, td, ed, xi)) - ")
     if (rightof(sd, td, curEdge)
        && incircle(sd, eo, td, ed, xi)
-       && !IsConstraint(sd, curEdge))
-      swap(sd, curEdge)
+       && !isconstraint(sd, curEdge))
+      swap!(sd, curEdge)
       curEdge = oprev(sd, curEdge)
     else
       local on = onext(sd, curEdge)
       if (on == stopEdge)
         break
       end
-      curEdge = LPrev(sd, on)
+      curEdge = lprev(sd, on)
     end
   end
 end
@@ -551,7 +551,7 @@ function removeintersectingedges!(
       push!(intersecting, i)
     else
       # swap diagonals
-      swap(sd, i)
+      swap!(sd, i)
 
       # check if swapped edge intersects with virtual edge and put it on list
       # don't put it on the list if org/dest is either of v1/v2
@@ -589,7 +589,7 @@ function restoredelaunayOfIntersecting!(
 
       # if so swap and put new edge back on list of intersecting
       if t1in2 || t2in1
-        swap(sd, i)
+        swap!(sd, i)
         push!(intersecting, i)
       end
     end
@@ -612,14 +612,14 @@ function insertconstraint!(sd::DelaunayTesselation, v1::Int, v2::Int)
       local ci = intersecting[1]
       local co = org(sd, ci)
       local ct = v1 == co ? OnRightSide : OnLeftSide
-      SetConstraint!(sd, ci, ct)
+      setconstraint!(sd, ci, ct)
       return ct == OnRightSide ? ci : sym(ci)
     else
       # edge is not already in - we need to swap
       ci = removeintersectingedges!(sd, v1, v2, intersecting)
       co = org(sd, ci)
       ct = v1 == co ? OnRightSide : OnLeftSide
-      SetConstraint!(sd, ci, ct)
+      setconstraint!(sd, ci, ct)
       restoredelaunayOfIntersecting!(sd, intersecting, v1, v2)
       return ct == OnRightSide ? ci : sym(ci)
     end

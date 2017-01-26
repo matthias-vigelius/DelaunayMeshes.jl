@@ -20,12 +20,12 @@ function setuptwopointtesselation(v1::DelaunayMeshes.Point, v2::DelaunayMeshes.P
     local ed = DelaunayMeshes.makeedge!(tess)
     DelaunayMeshes.endpoints!(tess, ed, 1, 4, 1, 1)
     DelaunayMeshes.splice!(tess, ed, ea)
-    local ee = DelaunayMeshes.connect!(tess, ea, DelaunayMeshes.Sym(ed), [1.0,1.0])
-    local ef = DelaunayMeshes.connect!(tess, eb, DelaunayMeshes.Sym(ee), [2.0,2.0])
+    local ee = DelaunayMeshes.connect!(tess, ea, DelaunayMeshes.sym(ed), [1.0,1.0])
+    local ef = DelaunayMeshes.connect!(tess, eb, DelaunayMeshes.sym(ee), [2.0,2.0])
 
     local eg = DelaunayMeshes.makeedge!(tess)
     DelaunayMeshes.endpoints!(tess, eg, 4, 5, 3, 3)
-    DelaunayMeshes.splice!(tess, eg, DelaunayMeshes.Sym(ee))
+    DelaunayMeshes.splice!(tess, eg, DelaunayMeshes.sym(ee))
     local eh = DelaunayMeshes.connect!(tess, DelaunayMeshes.sym(ee), DelaunayMeshes.sym(eg), [3.0,3.0])
     local ei = DelaunayMeshes.connect!(tess, eb, DelaunayMeshes.sym(eh), [4.0,4.0])
 
@@ -44,7 +44,7 @@ function locateandassertintriangle(
   local e3 = DelaunayMeshes.lnext(sd, e2)
   #println("$e1")
 
-  return  !DelaunayMeshes.rightof(sd, x, e1) && !DelaunayMeshes.RightOf(sd, x, e2) && !DelaunayMeshes.RightOf(sd, x, e3)
+  return  !DelaunayMeshes.rightof(sd, x, e1) && !DelaunayMeshes.rightof(sd, x, e2) && !DelaunayMeshes.rightof(sd, x, e3)
 end
 
 function testdelaunayness(sd::DelaunayMeshes.DelaunayTesselation)

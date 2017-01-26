@@ -19,7 +19,7 @@ type SubDivision{T}
 end
 
 """
-    makeEdge!(sd::SubDivision)
+    makeedge!(sd::SubDivision)
 
 Creates an empty edge and adds it to given SubDivision.
 

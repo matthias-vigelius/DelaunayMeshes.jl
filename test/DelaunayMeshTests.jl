@@ -35,7 +35,7 @@ import Winston
     push!(mesh, innerRing)
     push!(mesh, outerRing)
 
-    local faultyTriangles = TestHelpers.TestDelaunayness(mesh.tesselation)
+    local faultyTriangles = TestHelpers.testdelaunayness(mesh.tesselation)
     @test length(faultyTriangles) == 0
     @test length(mesh.tesselation.vertices) == (nvertices + 3 + 2*nringvertices)
 
@@ -51,8 +51,8 @@ import Winston
     local outerConstrMatrix = [outerConstraintVertexList'; circshift(outerConstraintVertexList, -1)']'
     local constraints = [innerConstrMatrix; outerConstrMatrix]
 
-    TestHelpers.ValidateConstraints(mesh.tesselation, constraints)
-    TestHelpers.TestVertexCache(mesh.tesselation)
+    TestHelpers.validateconstraints(mesh.tesselation, constraints)
+    TestHelpers.testvertexcache(mesh.tesselation)
 
     # get voronoiVertices
     local vorVert = DelaunayMesh.GetVoronoiVertices(mesh)
@@ -119,7 +119,7 @@ import Winston
     ]
     push!(mesh, constraintVertices)
 
-    local faultyTriangles = TestHelpers.TestDelaunayness(mesh.tesselation)
+    local faultyTriangles = TestHelpers.testdelaunayness(mesh.tesselation)
     #=
     if (length(faultyTriangles) > 0)
       for f in faultyTriangles
@@ -146,18 +146,18 @@ import Winston
       n+8 n+1;
     ]
     for i=1:size(constraints, 1)
-      Triangulation.InsertConstraint!(mesh.tesselation, constraints[i, 1], constraints[i,2])
+      Triangulation.DelaunayMeshes.insertconstraint!(mesh.tesselation, constraints[i, 1], constraints[i,2])
     end
 
-    TestHelpers.ValidateConstraints(mesh.tesselation, constraints)
-    TestHelpers.TestVertexCache(mesh.tesselation)
+    TestHelpers.validateconstraints(mesh.tesselation, constraints)
+    TestHelpers.testvertexcache(mesh.tesselation)
 
     # get voronoiVertices
     local vorVert = DelaunayMesh.GetVoronoiVertices(mesh)
 
     # get faces in connected region
-    local startEdge = TestHelpers.FindEdgeConnectingVertices(mesh.tesselation, n+1, n+2)
-    local startDualEdge = QuadEdge.Sym(QuadEdge.Rot(startEdge))
+    local startEdge = TestHelpers.findedgeconnectingvertices(mesh.tesselation, n+1, n+2)
+    local startDualEdge = sym(Rot(startEdge))
     local connectedVertices = DelaunayMesh.GetFacesInsideRegion(mesh, startDualEdge)
     local connectedBool = fill(false, size(mesh.tesselation.faces, 1))
     connectedBool[connectedVertices] = true
