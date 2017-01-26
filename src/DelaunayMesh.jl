@@ -250,4 +250,3 @@ function convert(::Type{DiffEqPDEBase.SimpleFEMMesh}, mesh::Mesh)
 
   return DiffEqPDEBase.SimpleFEMMesh(mesh.tesselation.vertices, redTriangles)
 end
-end

@@ -1,4 +1,4 @@
-function TestVertexCache(sd::DelaunayMeshes.SubDivision)
+function testvertexcache(sd::DelaunayMeshes.SubDivision)
   for (vi, v) in enumerate(sd.vertexCache)
     @assert v >= 1
     @assert sd.edges[v].origin == vi
@@ -47,7 +47,7 @@ function locateandassertintriangle(
   return  !DelaunayMeshes.rightof(sd, x, e1) && !DelaunayMeshes.RightOf(sd, x, e2) && !DelaunayMeshes.RightOf(sd, x, e3)
 end
 
-function TestDelaunayness(sd::DelaunayMeshes.DelaunayTesselation)
+function testdelaunayness(sd::DelaunayMeshes.DelaunayTesselation)
   local triangles = DelaunayMeshes.getalltriangles(sd)
   local faultyTriangles = Vector{Tuple{Int, Int, Int, Int}}()
 
@@ -147,7 +147,7 @@ function getrandomnumbersinsideboundingbox(bb::Vector{Float64}, n::Int)
 end
 
 function pointsinconstrainedregion(
-  mesh::DelaunayMesh.Mesh, points::Array{Float64, 2})
+  mesh::DelaunayMeshes.Mesh, points::Array{Float64, 2})
 
   local sb = DelaunayMesh.scalepoints(mesh,
     [
