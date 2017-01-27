@@ -11,7 +11,7 @@ makedocs(
 )
 
 deploydocs(
-    repo = "github.com/JuliaDocs/Documenter.jl.git",
+    repo = "github.com/matthias-vigelius/DelaunayMeshes.jl.git",
     target = "build",
     deps = nothing,
     make = nothing,
