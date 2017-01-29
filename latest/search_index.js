@@ -21,15 +21,31 @@ var documenterSearchIndex = {"docs": [
     "page": "User Guide",
     "title": "Introduction",
     "category": "section",
-    "text": "This package provides constrained Delaunay-Triangulations. It implements an edge-flipping algorithm to restore the Delaunay property and to remove intersecting edges. The user can define constraints as closed polygons and the package automatically marks faces interior to constrained regions.  The package provides various convenicenc methods, such as exporting triangulations as FEM-meshes or computing the centroid of faces."
+    "text": "This package provides constrained Delaunay-Triangulations. It implements an edge-flipping algorithm to restore the Delaunay property and to remove intersecting edges. The user can define constraints as closed polygons and the package automatically marks faces interior to constrained regions.  The package provides various convenience methods, such as exporting triangulations as FEM-meshes or computing the centroid of faces."
 },
 
 {
-    "location": "UserGuide.html#Usage-1",
+    "location": "UserGuide.html#Unconstrained-triangulations-1",
     "page": "User Guide",
-    "title": "Usage",
+    "title": "Unconstrained triangulations",
     "category": "section",
-    "text": "The first step is to create an empty mesh and set an appropriate bound box. DelaunayMeshes internally scales all vertex coordinates to fit into an enclosing virtual triangle. The bounding box establishes this scaling. Note that all vertices that are pushed into the triangulation later on must fit into this bounding box.    import DelaunayMeshes\n\n    # create empty mesh and set bounding box\n    local mesh = DelaunayMeshes.Mesh()\n    DelaunayMeshes.setboundingbox(mesh, [-15.0, 15.0, -15.0, 15.0])Vertices are added to the triangulation by pushing vectors of coordinates.    local seed = rand(UInt32)\n    local nvertices = 200\n    local points = rand(Float64, nvertices, 2)*30. - 15.\n    push!(mesh, points)  We can plot the triangulation using ``    xc, yc = DelaunayMeshes.getdelaunaycoordinates(mesh.tesselation)\n    p = Winston.FramedPlot(aspect_ratio=1)\n    Winston.add(p, Winston.Curve(xc, yc))\n    Winston.add(p, Winston.Points(\n      vorVert[mesh.faceLocation,1], vorVert[mesh.faceLocation,2],\n      kind=\"circle\", color=\"red\"))\n    Winston.savefig(p, \"RandomTriangulation.svg\")"
+    "text": "The first step is to create an empty mesh and set an appropriate bound box. DelaunayMeshes internally scales all vertex coordinates to fit into an enclosing virtual triangle. The bounding box establishes this scaling. Note that all vertices that are pushed into the triangulation later on must fit into this bounding box.import DelaunayMeshes\n\n# create empty mesh and set bounding box\nmesh = DelaunayMeshes.Mesh()\nDelaunayMeshes.setboundingbox(mesh, [-15.0, 15.0, -15.0, 15.0])Vertices are added to the triangulation by pushing vectors of coordinates.seed = rand(UInt32)\nnvertices = 200\npoints = rand(Float64, nvertices, 2)*30. - 15.\npush!(mesh, points)  We can plot the triangulation using getdelaunaycoordinatesimport Winston\nxc, yc = DelaunayMeshes.getdelaunaycoordinates(mesh.tesselation)\np = Winston.FramedPlot(aspect_ratio=1)\nWinston.add(p, Winston.Curve(xc, yc))(Image: Triangulation)Note that, internally, DelaunayMeshes scales down all coordinates into a numerically favorable range. The method unscalepoints allows to recover the original coordinates:unscaledpoints = DelaunayMeshes.unscalepoints(mesh, [xc'; yc']')"
+},
+
+{
+    "location": "UserGuide.html#Constraints-1",
+    "page": "User Guide",
+    "title": "Constraints",
+    "category": "section",
+    "text": "Constraints can be added to unconstrained triangulations using addconstraint# create an unconstrained triangulation\nmesh = DelaunayMeshes.Mesh()\nDelaunayMeshes.setboundingbox(mesh, [-15.0, 15.0, -15.0, 15.0])\nseed = rand(UInt32)\nnvertices = 200\npoints = rand(Float64, nvertices, 2)*30. - 15.\npush!(mesh, points)  \n\n# push vertices for two concentric circles\nnringvertices = 40\nθ = linspace(0., 2.*π, nringvertices + 1)[1:end-1]\nrinner = 5.\nrouter = 10.\ninnerRing = rinner * [cos(θ'); sin(θ')]'\nouterRing = router * [cos(θ'); sin(θ')]'\npush!(mesh, innerRing)\npush!(mesh, outerRing)\n\n# add constraints\ninnerConstraintVertexList = [x for x in (nvertices+3+nringvertices):-1:(nvertices+3+1)]\nouterConstraintVertexList = [x for x in (nvertices+3+nringvertices+1):(nvertices + 3 + 2*nringvertices)]\nDelaunayMeshes.addconstraint!(mesh, innerConstraintVertexList)\nDelaunayMeshes.addconstraint!(mesh, outerConstraintVertexList)All faces that are located to the right of the enclosing polygon are marked as being exterior to the triangulated region. The current status of a face is stored in Mesh.faceLocation. We can use it, for example, to plot all Voronoi vertices that are interior to the region:# get Delaunay edges and Voronoi vertices\nxc, yc = DelaunayMeshes.getdelaunaycoordinates(mesh.tesselation)\nvorVert = DelaunayMeshes.getvoronoivertices(mesh)\n\n# plot all edges and all interior Voronoi vertices\nimport Winston\np = Winston.FramedPlot(aspect_ratio=1)\nWinston.add(p, Winston.Curve(xc, yc))\nWinston.add(p, Winston.Points( vorVert[mesh.faceLocation,1], vorVert[mesh.faceLocation,2], kind=\"circle\", color=\"green\"))(Image: Constrained triangulation)"
+},
+
+{
+    "location": "UserGuide.html#Quad-Edge-data-structure-1",
+    "page": "User Guide",
+    "title": "Quad-Edge data structure",
+    "category": "section",
+    "text": "Internally, DelaunayMeshes uses a quad-edge data structure to maintain the triangulation. Edges have triangulation vertices as sources while the source of a dual edge is a face. All basic quad-edge operations are provided and can be used to match the face index to a triangle (and vice versa). The user may consult the API documentation for details."
 },
 
 {

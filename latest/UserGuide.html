@@ -1,15 +1,42 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>User Guide · DelaunayMeshes</title><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.5.0/styles/default.min.css" rel="stylesheet" type="text/css"/><link href="https://fonts.googleapis.com/css?family=Lato|Ubuntu+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/><link href="assets/documenter.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js" data-main="assets/documenter.js"></script><script src="../versions.js"></script></head><body><nav class="toc"><h1>DelaunayMeshes</h1><form class="search" action="search.html"><select id="version-selector" onChange="window.location.href=this.value"><option value="#" selected="selected" disabled="disabled">Version</option></select><input id="search-query" name="q" type="text" placeholder="Search docs"/></form><ul><li class="current"><a class="toctext" href="UserGuide.html">User Guide</a><ul class="internal"><li><a class="toctext" href="#Introduction-1">Introduction</a></li><li><a class="toctext" href="#Usage-1">Usage</a></li></ul></li><li><a class="toctext" href="index.html">API</a></li></ul></nav><article id="docs"><header><nav><ul><li><a href="UserGuide.html">User Guide</a></li></ul><a class="edit-page" href="https://github.com/matthias-vigelius/DelaunayMeshes.jl/tree/e1b3ad08fdcaf31f08b8d917d8cf660c11a1a735/docs/src/UserGuide.md"><span class="fa"></span> Edit on GitHub</a></nav><hr/></header><h1><a class="nav-anchor" id="User-guide-1" href="#User-guide-1">User guide</a></h1><h2><a class="nav-anchor" id="Introduction-1" href="#Introduction-1">Introduction</a></h2><p>This package provides constrained Delaunay-Triangulations. It implements an edge-flipping algorithm to restore the Delaunay property and to remove intersecting edges. The user can define constraints as closed polygons and the package automatically marks faces interior to constrained regions.  The package provides various convenicenc methods, such as exporting triangulations as FEM-meshes or computing the centroid of faces.</p><h2><a class="nav-anchor" id="Usage-1" href="#Usage-1">Usage</a></h2><p>The first step is to create an empty mesh and set an appropriate bound box. <code>DelaunayMeshes</code> internally scales all vertex coordinates to fit into an enclosing virtual triangle. The bounding box establishes this scaling. Note that all vertices that are pushed into the triangulation later on must fit into this bounding box.</p><pre><code class="language-none">    import DelaunayMeshes
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>User Guide · DelaunayMeshes</title><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.5.0/styles/default.min.css" rel="stylesheet" type="text/css"/><link href="https://fonts.googleapis.com/css?family=Lato|Ubuntu+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/><link href="assets/documenter.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js" data-main="assets/documenter.js"></script><script src="../versions.js"></script></head><body><nav class="toc"><h1>DelaunayMeshes</h1><form class="search" action="search.html"><select id="version-selector" onChange="window.location.href=this.value"><option value="#" selected="selected" disabled="disabled">Version</option></select><input id="search-query" name="q" type="text" placeholder="Search docs"/></form><ul><li class="current"><a class="toctext" href="UserGuide.html">User Guide</a><ul class="internal"><li><a class="toctext" href="#Introduction-1">Introduction</a></li><li><a class="toctext" href="#Unconstrained-triangulations-1">Unconstrained triangulations</a></li><li><a class="toctext" href="#Constraints-1">Constraints</a></li><li><a class="toctext" href="#Quad-Edge-data-structure-1">Quad-Edge data structure</a></li></ul></li><li><a class="toctext" href="index.html">API</a></li></ul></nav><article id="docs"><header><nav><ul><li><a href="UserGuide.html">User Guide</a></li></ul><a class="edit-page" href="https://github.com/matthias-vigelius/DelaunayMeshes.jl/tree/4fa791fce1ff457785d82c07f486d396137be285/docs/src/UserGuide.md"><span class="fa"></span> Edit on GitHub</a></nav><hr/></header><h1><a class="nav-anchor" id="User-guide-1" href="#User-guide-1">User guide</a></h1><h2><a class="nav-anchor" id="Introduction-1" href="#Introduction-1">Introduction</a></h2><p>This package provides constrained Delaunay-Triangulations. It implements an edge-flipping algorithm to restore the Delaunay property and to remove intersecting edges. The user can define constraints as closed polygons and the package automatically marks faces interior to constrained regions.  The package provides various convenience methods, such as exporting triangulations as FEM-meshes or computing the centroid of faces.</p><h2><a class="nav-anchor" id="Unconstrained-triangulations-1" href="#Unconstrained-triangulations-1">Unconstrained triangulations</a></h2><p>The first step is to create an empty mesh and set an appropriate bound box. <code>DelaunayMeshes</code> internally scales all vertex coordinates to fit into an enclosing virtual triangle. The bounding box establishes this scaling. Note that all vertices that are pushed into the triangulation later on must fit into this bounding box.</p><pre><code class="language-Julia">import DelaunayMeshes
 
-    # create empty mesh and set bounding box
-    local mesh = DelaunayMeshes.Mesh()
-    DelaunayMeshes.setboundingbox(mesh, [-15.0, 15.0, -15.0, 15.0])</code></pre><p>Vertices are added to the triangulation by pushing vectors of coordinates.</p><pre><code class="language-none">    local seed = rand(UInt32)
-    local nvertices = 200
-    local points = rand(Float64, nvertices, 2)*30. - 15.
-    push!(mesh, points)  </code></pre><p>We can plot the triangulation using ``</p><pre><code class="language-none">    xc, yc = DelaunayMeshes.getdelaunaycoordinates(mesh.tesselation)
-    p = Winston.FramedPlot(aspect_ratio=1)
-    Winston.add(p, Winston.Curve(xc, yc))
-    Winston.add(p, Winston.Points(
-      vorVert[mesh.faceLocation,1], vorVert[mesh.faceLocation,2],
-      kind=&quot;circle&quot;, color=&quot;red&quot;))
-    Winston.savefig(p, &quot;RandomTriangulation.svg&quot;)</code></pre><footer><hr/><a class="next" href="index.html"><span class="direction">Next</span><span class="title">API</span></a></footer></article></body></html>
+# create empty mesh and set bounding box
+mesh = DelaunayMeshes.Mesh()
+DelaunayMeshes.setboundingbox(mesh, [-15.0, 15.0, -15.0, 15.0])</code></pre><p>Vertices are added to the triangulation by pushing vectors of coordinates.</p><pre><code class="language-Julia">seed = rand(UInt32)
+nvertices = 200
+points = rand(Float64, nvertices, 2)*30. - 15.
+push!(mesh, points)  </code></pre><p>We can plot the triangulation using <code>getdelaunaycoordinates</code></p><pre><code class="language-Julia">import Winston
+xc, yc = DelaunayMeshes.getdelaunaycoordinates(mesh.tesselation)
+p = Winston.FramedPlot(aspect_ratio=1)
+Winston.add(p, Winston.Curve(xc, yc))</code></pre><p><img src="RandomTriangulation.svg" alt="Triangulation"/></p><p>Note that, internally, <code>DelaunayMeshes</code> scales down all coordinates into a numerically favorable range. The method <code>unscalepoints</code> allows to recover the original coordinates:</p><pre><code class="language-Julia">unscaledpoints = DelaunayMeshes.unscalepoints(mesh, [xc&#39;; yc&#39;]&#39;)</code></pre><h2><a class="nav-anchor" id="Constraints-1" href="#Constraints-1">Constraints</a></h2><p>Constraints can be added to unconstrained triangulations using <code>addconstraint</code></p><pre><code class="language-Julia"># create an unconstrained triangulation
+mesh = DelaunayMeshes.Mesh()
+DelaunayMeshes.setboundingbox(mesh, [-15.0, 15.0, -15.0, 15.0])
+seed = rand(UInt32)
+nvertices = 200
+points = rand(Float64, nvertices, 2)*30. - 15.
+push!(mesh, points)  
+
+# push vertices for two concentric circles
+nringvertices = 40
+θ = linspace(0., 2.*π, nringvertices + 1)[1:end-1]
+rinner = 5.
+router = 10.
+innerRing = rinner * [cos(θ&#39;); sin(θ&#39;)]&#39;
+outerRing = router * [cos(θ&#39;); sin(θ&#39;)]&#39;
+push!(mesh, innerRing)
+push!(mesh, outerRing)
+
+# add constraints
+innerConstraintVertexList = [x for x in (nvertices+3+nringvertices):-1:(nvertices+3+1)]
+outerConstraintVertexList = [x for x in (nvertices+3+nringvertices+1):(nvertices + 3 + 2*nringvertices)]
+DelaunayMeshes.addconstraint!(mesh, innerConstraintVertexList)
+DelaunayMeshes.addconstraint!(mesh, outerConstraintVertexList)</code></pre><p>All faces that are located to the right of the enclosing polygon are marked as being exterior to the triangulated region. The current status of a face is stored in <code>Mesh.faceLocation</code>. We can use it, for example, to plot all Voronoi vertices that are interior to the region:</p><pre><code class="language-Julia"># get Delaunay edges and Voronoi vertices
+xc, yc = DelaunayMeshes.getdelaunaycoordinates(mesh.tesselation)
+vorVert = DelaunayMeshes.getvoronoivertices(mesh)
+
+# plot all edges and all interior Voronoi vertices
+import Winston
+p = Winston.FramedPlot(aspect_ratio=1)
+Winston.add(p, Winston.Curve(xc, yc))
+Winston.add(p, Winston.Points( vorVert[mesh.faceLocation,1], vorVert[mesh.faceLocation,2], kind=&quot;circle&quot;, color=&quot;green&quot;))</code></pre><p><img src="ConstrainedTriangulation.svg" alt="Constrained triangulation"/></p><h2><a class="nav-anchor" id="Quad-Edge-data-structure-1" href="#Quad-Edge-data-structure-1">Quad-Edge data structure</a></h2><p>Internally, <code>DelaunayMeshes</code> uses a quad-edge data structure to maintain the triangulation. Edges have triangulation vertices as sources while the source of a dual edge is a face. All basic quad-edge operations are provided and can be used to match the face index to a triangle (and vice versa). The user may consult the API documentation for details.</p><footer><hr/><a class="next" href="index.html"><span class="direction">Next</span><span class="title">API</span></a></footer></article></body></html>
