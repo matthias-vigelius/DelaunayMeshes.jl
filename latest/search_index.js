@@ -81,6 +81,14 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "index.html#DelaunayMeshes.beta",
+    "page": "API",
+    "title": "DelaunayMeshes.beta",
+    "category": "Constant",
+    "text": "Maximal ratio of circumcircle radius and length of shortest edge before  a triangle is considered bad.\n\n\n\n"
+},
+
+{
     "location": "index.html#DelaunayMeshes.ConstraintType",
     "page": "API",
     "title": "DelaunayMeshes.ConstraintType",
@@ -134,6 +142,22 @@ var documenterSearchIndex = {"docs": [
     "title": "DelaunayMeshes.checkconvexityquadriliteral",
     "category": "Method",
     "text": "checkconvexityquadriliteral(sd::DelaunayTesselation, vertices::Vector{Int})\n\nChecks if the given quadriliteral is strictly convex.\n\nRemarks\n\nThe end points of the quadriliteral must be given in CCW order\n\n\n\n"
+},
+
+{
+    "location": "index.html#DelaunayMeshes.compute_circumcenter_radius-Tuple{DelaunayMeshes.Mesh,Int64,Int64,Int64}",
+    "page": "API",
+    "title": "DelaunayMeshes.compute_circumcenter_radius",
+    "category": "Method",
+    "text": "compute_circumcenter_radius(mesh::Mesh, p::VertexIndex, r::VertexIndex, q::VertexIndex)\n\nComputes the position and radius of the triangle circumcenter.\n\nReturns\n\ncx, cy, rs with c_x, c_y the position and r_s the radius square of the circum center.\n\n\n\n"
+},
+
+{
+    "location": "index.html#DelaunayMeshes.compute_offcenter-Tuple{DelaunayMeshes.Mesh,Int64,Int64,Int64}",
+    "page": "API",
+    "title": "DelaunayMeshes.compute_offcenter",
+    "category": "Method",
+    "text": "compute_offcenter(mesh:Mesh, p::VertexIndex, q::VertexIndex, r::VertexIndex)\n\nComputes position of offcenter[1] for given triangle p - q - r.\n\nRemarks\n\np - q must be the shortest edge of the triangle, i.e. the smallest angle is located at r.\n\nReferences\n\n[1] Alper Üngör (2009). Off-centers: A new type of Steiner points for computing size-optimal quality-guaranteed Delaunay triangulations, Computational Geometry, 42 (2)\n\n(Image: SteinerPoint)\n\n\n\n"
 },
 
 {
