@@ -18,6 +18,8 @@ type SubDivision{T}
   faces::Vector{T}
 end
 
+typealias VertexIndex Int
+
 """
     makeedge!(sd::SubDivision)
 
