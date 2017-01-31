@@ -5,14 +5,6 @@ minX = 1.0
 maxX = 2.0 - eps(Float64)
 deltaX = maxX - minX
 
-function convert(::Type{GeometricalPredicates.Point2D}, x::Vector{Float64})
-  local l = length(x)
-  if length(x) != 2
-    throw(ArgumentError("Cannot convert vector of length $l to point."))
-  end
-  return GeometricalPredicates.Point2D(x[1], x[2])
-end
-
 """
     DelaunayTesselation()
 
@@ -27,7 +19,7 @@ function DelaunayTesselation()
   local v1 = convert(Point, [minX, minX])
   local v2 = convert(Point, [maxX, minX])
   local v3 = convert(Point, [minX + 0.5 * deltaX, maxX])
-  local innerFace = convert(Point, (1./3.)*(v1 + v2 + v3))
+  local innerFace = convert(Point, (1./3.) * (v1 + v2 + v3))
   local outerFace = convert(Point, [Inf, Inf])
   local sd = create_subdivision(v1, v2, v3, innerFace, outerFace)
 
@@ -129,10 +121,12 @@ Computes the location of vertex `vi` relative to line defined by `ei`.
 * True, if `vi` is located to the right of the edge
 """
 function rightof(sd::DelaunayTesselation, x::Point, ei::Int)
-  local o = convert(GeometricalPredicates.Point2D, sd.vertices[org(sd, ei)])
-  local d = convert(GeometricalPredicates.Point2D, sd.vertices[dest(sd, ei)])
+  local op = sd.vertices[org(sd, ei)]
+  local dp = sd.vertices[dest(sd, ei)]
+  local o = GeometricalPredicates.Point2D(op[1], op[2])
+  local d = GeometricalPredicates.Point2D(dp[1], dp[2])
   local edge = GeometricalPredicates.Line(o,d)
-  local test = convert(GeometricalPredicates.Point2D, x)
+  local test = GeometricalPredicates.Point2D(x[1], x[2])
 
   return GeometricalPredicates.orientation(edge, test) == -1
 end
@@ -365,10 +359,10 @@ Tests if the vertex `v4` is strictly inside the circumcircle of the triangle
 `v1`-`v2`-`v3`.
 """
 function incircle(sd::DelaunayTesselation, v1::Int, v2::Int, v3::Int, v4::Int)
-  local x1 = convert(GeometricalPredicates.Point2D, sd.vertices[v1])
-  local x2 = convert(GeometricalPredicates.Point2D, sd.vertices[v2])
-  local x3 = convert(GeometricalPredicates.Point2D, sd.vertices[v3])
-  local x4 = convert(GeometricalPredicates.Point2D, sd.vertices[v4])
+  local x1 = GeometricalPredicates.Point2D(sd.vertices[v1][1], sd.vertices[v1][2])
+  local x2 = GeometricalPredicates.Point2D(sd.vertices[v2][1], sd.vertices[v2][2])
+  local x3 = GeometricalPredicates.Point2D(sd.vertices[v3][1], sd.vertices[v3][2])
+  local x4 = GeometricalPredicates.Point2D(sd.vertices[v4][1], sd.vertices[v4][2])
   local triangle = GeometricalPredicates.Primitive(x1,x2,x3)
 
   return GeometricalPredicates.incircle(triangle, x4) > 0
