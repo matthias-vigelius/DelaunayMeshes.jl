@@ -1,4 +1,4 @@
-"""
+  """
 Maximal ratio of circumcircle radius and length of shortest edge before  a triangle
 is considered bad.
 """
@@ -44,23 +44,23 @@ Computes position of offcenter[^1] for given triangle ``p - q - r``.
 ![SteinerPoint](SteinerPoint.svg)
 """
 function compute_offcenter(mesh::Mesh, p::VertexIndex, q::VertexIndex, r::VertexIndex)
-  local pr = mesh.tesselation.vertics[p]
-  local qr = mesh.tesselation.vertics[q]
-  local rr = mesh.tesselation.vertics[r]
+  local pr = mesh.tesselation.vertices[p]
+  local qr = mesh.tesselation.vertices[q]
+  local rr = mesh.tesselation.vertices[r]
 
   # position of bisection start of pq and circum center
   local bsr = 0.5 * (pr + qr)
-  local ccx, ccy, ccrs = compute_circumcenter_radius(mesh, p, q, r)
+  ccx, ccy, ccrs = compute_circumcenter_radius(mesh, p, q, r)
 
   # length of pq and radius of offcenter
   local lpq = norm(pr - qr)
-  local ocr = beta * lpq
+  local ocr = beta * lpq * 0.999999
 
   # distance edge midpoint to center of offcircle ``c_2``
   local dobsoc = sqrt(ocr*ocr - (lpq/2.)*(lpq/2.) )
-  local c2 = bs + dobsoc * normalize([ccx, ccy] - bs)
+  local c2 = bsr + dobsoc * normalize([ccx, ccy] - bsr)
 
   # bisection: pq-midpoint
-  local offcenter = c2 + ocr * normalize([ccx, ccy] - bs)
+  local offcenter = c2 + ocr * normalize([ccx, ccy] - bsr)
   return offcenter
 end

@@ -224,3 +224,13 @@ function getplotedges(sd::DelaunayMeshes.DelaunayTesselation)
 
   return x, y
 end
+
+function create_mesh_with_triangle(cx::Float64, cy::Float64, r::Float64, t1::Float64, t2::Float64, t3::Float64)
+    local v1 = [cx + r * cos(t1), cy + r * sin(t1)]
+    local v2 = [cx + r * cos(t2), cy + r * sin(t2)]
+    local v3 = [cx + r * cos(t3), cy + r * sin(t3)]
+    local mesh = DelaunayMeshes.Mesh()
+    mesh.tesselation.vertices = [v1, v2, v3]
+
+    return mesh
+end

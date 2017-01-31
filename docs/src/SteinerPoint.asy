@@ -2,6 +2,7 @@ import graph;
 
 size(20cm,20cm);
 pair cc = (0.,0.);
+real offset = 0.*pi;
 real a0 = pi/24.;
 real ar = pi/4.;
 real r0 = 2.;
@@ -11,9 +12,9 @@ path outcircle=shift(cc)*scale(r0)*unitcircle;
 draw(outcircle, dotted);
 
 
-pair p = r0 * (cos(pi - a0), sin(pi - a0));
-pair q = r0 * (cos(pi + a0), sin(pi + a0));
-pair r = r0 * (cos(ar), sin(ar));
+pair p = r0 * (cos(pi - a0 + offset), sin(pi - a0 + offset));
+pair q = r0 * (cos(pi + a0 + offset), sin(pi + a0 + offset));
+pair r = r0 * (cos(ar + offset), sin(ar + offset));
 draw(p--q);
 draw(q--r);
 draw(r--p);
