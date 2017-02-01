@@ -35,4 +35,38 @@
     @test sqrt(rs)/lpq <= DelaunayMeshes.beta
   end
   end
+
+  @testset "vertex_encroaches_segment" for rd in [0.8, 1.2] begin
+    # seed rng and store seed in file
+    #local seed =2410381395
+    local seed = rand(UInt32)
+    local fs = open("vertex_encroaches_segment.seed", "w")
+    write(fs, string(seed))
+    close(fs)
+    srand(seed)
+
+    mesh = DelaunayMeshes.Mesh()
+
+    # mark first edge as boundary
+    DelaunayMeshes.setconstraint!(mesh.tesselation, 1, DelaunayMeshes.OnLeftSide)
+    mesh.tesselation.edges[5].constraintType = DelaunayMeshes.NoConstraint
+    mesh.tesselation.edges[7].constraintType = DelaunayMeshes.NoConstraint
+
+    # create potentially encroaching vertex for that edge
+    me = 0.5*(mesh.tesselation.vertices[1] + mesh.tesselation.vertices[2])
+    l = norm(mesh.tesselation.vertices[1] - mesh.tesselation.vertices[2])
+    θ = rand(Float64) * 2. * pi
+    vp = convert(DelaunayMeshes.Point, me + rd * 0.5 * l * [cos(θ), sin(θ)])
+    @test DelaunayMeshes.vertex_encroaches_segment(mesh, 1, vp) == (rd < 1.0)
+    @test DelaunayMeshes.vertex_encroaches_segment(mesh, 3, vp) == (rd < 1.0)
+
+    # create possibly encroaching vertex for non boundary
+    me = 0.5*(mesh.tesselation.vertices[2] + mesh.tesselation.vertices[3])
+    l = norm(mesh.tesselation.vertices[2] - mesh.tesselation.vertices[3])
+    θ = rand(Float64) * 2. * pi
+    vp = convert(DelaunayMeshes.Point, me + rd * 0.5 * l * [cos(θ), sin(θ)])
+    @test DelaunayMeshes.vertex_encroaches_segment(mesh, 5, vp) == false
+    @test DelaunayMeshes.vertex_encroaches_segment(mesh, 7, vp) == false
+  end
+  end
 end

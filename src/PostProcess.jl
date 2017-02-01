@@ -64,3 +64,28 @@ function compute_offcenter(mesh::Mesh, p::VertexIndex, q::VertexIndex, r::Vertex
   local offcenter = c2 + ocr * normalize([ccx, ccy] - bsr)
   return offcenter
 end
+
+"""
+    vertex_encroaches_segment(mesh::Mesh, ei::Int, vertex::Point)
+
+Checks if a potential vertex encroaches the segment denoted by `ei`.
+
+# Remarks
+* If edge `ei` is not a segment, i.e. not marked as a boundary, it always
+  returns `false`
+"""
+function vertex_encroaches_segment(mesh::Mesh, ei::Int, vertex::Point)
+    if (!isconstraint(mesh.tesselation, ei))
+      return false
+    end
+
+    vio = org(mesh.tesselation, ei)
+    vid = dest(mesh.tesselation, ei)
+    v1 = mesh.tesselation.vertices[vio]
+    v2 = mesh.tesselation.vertices[vid]
+    mp = 0.5*(v1 + v2)
+    dr = vertex - mp # from midpoint to new vertex
+    dx = v1 - mp # from midpoint to end point
+
+    return (dr[1]^2 + dr[2]^2) <= (dx[1]^2 + dx[2]^2)
+  end
