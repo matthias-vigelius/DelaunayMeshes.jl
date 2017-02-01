@@ -89,3 +89,57 @@ function vertex_encroaches_segment(mesh::Mesh, ei::Int, vertex::Point)
 
     return (dr[1]^2 + dr[2]^2) <= (dx[1]^2 + dx[2]^2)
   end
+
+
+""""
+    get_shortest_edge(mesh::Mesh, ai::VertexIndex, bi::VertexIndex, ci::VertexIndex)
+
+Given a triangle with CCW-ordered vertices `ai` - `bi` - `ci`, it computes the
+edge length and returns a sorted tuple `p` - `q` - `r` such that the triangle
+``p - q - r`` has its shortest edge between `p` and `q`.
+"""
+function get_shortest_edge(mesh::Mesh, ai::VertexIndex, bi::VertexIndex, ci::VertexIndex)
+  # nomenclature as in Bronstein et al..
+  xa = mesh.tesselation.vertices[ai]
+  xb = mesh.tesselation.vertices[bi]
+  xc = mesh.tesselation.vertices[ci]
+  vab = (xb - xa) # edge a
+  vac = (xc - xa) # edge b
+  vbc = (xb - xc) # edge a
+  c = norm(vab)
+  b = norm(vac)
+  a = norm(vbc)
+  #cosa = (b'*b + c'*c - a'*a)/(2. * b' * c)
+  #cosb = (a'*a + c'*c - b'*b)/(2. * c' * a)
+  #cosc = (a'*a + b'*b - c'*c)/(2. * a' * b)
+  ordered = [(a, ai, bi, ci), (b, bi, ci, ai), (c, ci, ai, bi)]
+
+  # order in place
+  if (ordered[1][1] > ordered[2][1])
+    ordered[1], ordered[2] = ordered[2], ordered[1]
+  end
+  if (ordered[2][1] > ordered[3][1])
+    ordered[2], ordered[3] = ordered[3], ordered[2]
+  end
+  if (ordered[1][1] > ordered[2][1])
+    ordered[1], ordered[2] = ordered[2], ordered[1]
+  end
+
+  return (ordered[1][2], ordered[1][3], ordered[1][4])
+end
+
+ """
+    function refine_triangle(mesh::Mesh, ei::Int)
+
+Refines the triangle located to the left of edge `ei` by adding a new vertex
+at the offcenter or the midpoint of encroached edges.
+
+# Remarks
+* If a new vertex at the off-center of the triangle does not encroach any segments
+  it is inserted at the off-center.
+* Otherwise, a new vertex is inserted at the midpoint of each edge that the
+  off-center would encroach on.
+"""
+function refine_triangle(mesh::Mesh, ei::Int)
+
+end

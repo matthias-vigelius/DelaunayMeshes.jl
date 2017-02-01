@@ -1,5 +1,33 @@
-#TODO: check also case where offcenter is to the right of circum center (a0 = 16. in asy..)
 @testset "PostProcessTests" begin
+  @testset "get_shortest_edge" for par in [[-1.0, 2.0, 1.3, 5.0, 7.0, 7.5], [1.0, -2.0, 3.141, 10.0, 12.0, 21.5], [0.0, 0.0, 0.0, 1.0, 2.0, 2.5]] begin
+    cx, cy, alpha0, a, b, c = par
+
+    mesh = DelaunayMeshes.Mesh()
+
+    s = 0.5*(a+b+c)
+    r = sqrt((s-a)*(s-b)*(s-c)/s)
+    alpha = 2.0*(atan(r/(s-a)))
+    beta = 2.0*(atan(r/(s-b)))
+    gamma = 2.0*(atan(r/(s-c)))
+    (v1x, v1y) = (cx + b * cos(alpha + alpha0), cy + b * sin(alpha + alpha0))
+    (v2x, v2y) = (cx + c * cos(alpha0), cy + c * sin(alpha0))
+    mesh.tesselation.vertices = [[cx, cy],[v2x, v2y],[v1x, v1y]]
+
+    p, q, r = DelaunayMeshes.get_shortest_edge(mesh, 1, 2, 3)
+    @test p == 1
+    @test q == 2
+    @test r == 3
+    p, q, r = DelaunayMeshes.get_shortest_edge(mesh, 2, 3, 1)
+    @test p == 1
+    @test q == 2
+    @test r == 3
+    p, q, r = DelaunayMeshes.get_shortest_edge(mesh, 3, 1, 2)
+    @test p == 1
+    @test q == 2
+    @test r == 3
+  end
+  end
+
   @testset "compute_circumcenter_radius" for r in [0.1, 1.1], c in [[1.6, 1.3], [1.25, 1.7]], t in [[0, pi/2., pi], [pi/8, pi-pi/16, pi+pi/16]] begin
     # generate triangle on given circumcircle
     local cx = c[1]
