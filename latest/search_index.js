@@ -409,6 +409,14 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "index.html#DelaunayMeshes.vertex_encroaches_segment-Tuple{DelaunayMeshes.Mesh,Int64,Array{Float64,1}}",
+    "page": "API",
+    "title": "DelaunayMeshes.vertex_encroaches_segment",
+    "category": "Method",
+    "text": "vertex_encroaches_segment(mesh::Mesh, ei::Int, vertex::Point)\n\nChecks if a potential vertex encroaches the segment denoted by ei.\n\nRemarks\n\nIf edge ei is not a segment, i.e. not marked as a boundary, it always returns false\n\n\n\n"
+},
+
+{
     "location": "index.html#DelaunayMeshes-1",
     "page": "API",
     "title": "DelaunayMeshes",
