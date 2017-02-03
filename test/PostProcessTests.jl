@@ -1,4 +1,73 @@
+#import Winston
+
 @testset "PostProcessTests" begin
+  @testset "refine_triangle" begin
+    local mesh = DelaunayMeshes.Mesh()
+    DelaunayMeshes.setboundingbox(mesh, [-15.0, 15.0, -15.0, 15.0])
+
+    push!(mesh, [-5.0 -5.0; 5.0 -5.0; 0.0 5.0])
+
+    # find face foce for vertices
+    local testTriangle = DelaunayMeshes.Triangle(mesh.tesselation, 4, 5, 6)
+
+    # refine
+    DelaunayMeshes.refine_triangle(mesh, testTriangle)
+
+    # check that there is a new vertex and that it's at the offcenter
+    @test length(mesh.tesselation.vertices) == 7
+    local offcenter = DelaunayMeshes.compute_offcenter(mesh, 4, 5, 6)
+    @test_approx_eq(mesh.tesselation.vertices[7]', offcenter')
+
+    #=
+    # plot it
+    xc, yc = getplotedges(mesh.tesselation)
+    local vertexPoints = reduce(hcat, mesh.tesselation.vertices)'
+    p = Winston.FramedPlot(aspect_ratio=1
+      ,xrange=[1.45, 1.55], yrange=[1.2, 1.3]
+      )
+    Winston.add(p, Winston.Points(vertexPoints[:,1], vertexPoints[:,2], kind="circle", color="red"))
+    Winston.add(p, Winston.Curve(xc, yc))
+    Winston.savefig(p, "refine_triangle.svg")
+    =#
+  end
+
+  @testset "refine_triangle_constraints" begin
+    local mesh = DelaunayMeshes.Mesh()
+    DelaunayMeshes.setboundingbox(mesh, [-15.0, 15.0, -15.0, 15.0])
+
+    push!(mesh, [-5.0 -5.0; 5.0 -5.0; 0.0 5.0])
+
+    # find face foce for vertices
+    local tri = DelaunayMeshes.Triangle(mesh.tesselation, 4, 5, 6)
+
+    # set edges as constraints
+    DelaunayMeshes.setconstraint!(mesh.tesselation, tri.edges[1], DelaunayMeshes.OnLeftSide)
+    DelaunayMeshes.setconstraint!(mesh.tesselation, tri.edges[2], DelaunayMeshes.OnLeftSide)
+
+    # refine
+    DelaunayMeshes.refine_triangle(mesh, tri)
+
+    # check that there is a new vertex and that it's at the edge centers
+    @test length(mesh.tesselation.vertices) == 8
+    midpoint1 = 0.5*(mesh.tesselation.vertices[4] + mesh.tesselation.vertices[5])
+    midpoint2 = 0.5*(mesh.tesselation.vertices[5] + mesh.tesselation.vertices[6])
+    @test_approx_eq(mesh.tesselation.vertices[7]', midpoint1')
+    @test_approx_eq(mesh.tesselation.vertices[8]', midpoint2')
+
+    #=
+    # plot it
+    xc, yc = getplotedges(mesh.tesselation)
+    local vertexPoints = reduce(hcat, mesh.tesselation.vertices)'
+    p = Winston.FramedPlot(aspect_ratio=1
+      ,xrange=[1.45, 1.55], yrange=[1.2, 1.3]
+      )
+    Winston.add(p, Winston.Points(vertexPoints[:,1], vertexPoints[:,2], kind="circle", color="red"))
+    Winston.add(p, Winston.Curve(xc, yc))
+    Winston.savefig(p, "refine_triangle.svg")
+    =#
+  end
+
+
   @testset "get_shortest_edge" for par in [[-1.0, 2.0, 1.3, 5.0, 7.0, 7.5], [1.0, -2.0, 3.141, 10.0, 12.0, 21.5], [0.0, 0.0, 0.0, 1.0, 2.0, 2.5]] begin
     cx, cy, alpha0, a, b, c = par
 

@@ -58,11 +58,20 @@ function compute_offcenter(mesh::Mesh, p::VertexIndex, q::VertexIndex, r::Vertex
 
   # distance edge midpoint to center of offcircle ``c_2``
   local dobsoc = sqrt(ocr*ocr - (lpq/2.)*(lpq/2.) )
-  local c2 = bsr + dobsoc * normalize([ccx, ccy] - bsr)
 
-  # bisection: pq-midpoint
-  local offcenter = c2 + ocr * normalize([ccx, ccy] - bsr)
-  return offcenter
+  # distance edge midpoint to center of outcircle
+  local dbscc = norm(bsr - [ccx, ccy])
+  if (dbscc <= dobsoc)
+    # we take the out circle center
+    return [ccx, ccy]
+  else
+    # we take off center
+
+    # bisection: pq-midpoint
+    local c2 = bsr + dobsoc * normalize([ccx, ccy] - bsr)
+    local offcenter = c2 + ocr * normalize([ccx, ccy] - bsr)
+    return offcenter
+  end
 end
 
 """
@@ -129,7 +138,7 @@ function get_shortest_edge(mesh::Mesh, ai::VertexIndex, bi::VertexIndex, ci::Ver
 end
 
  """
-    function refine_triangle(mesh::Mesh, ei::Int)
+    function refine_triangle(mesh::Mesh, tri::Triangle)
 
 Refines the triangle located to the left of edge `ei` by adding a new vertex
 at the offcenter or the midpoint of encroached edges.
@@ -140,6 +149,32 @@ at the offcenter or the midpoint of encroached edges.
 * Otherwise, a new vertex is inserted at the midpoint of each edge that the
   off-center would encroach on.
 """
-function refine_triangle(mesh::Mesh, ei::Int)
+function refine_triangle(mesh::Mesh, tri::Triangle)
 
+  # get ordered vertices
+  p, q, r = get_shortest_edge(mesh, tri.vertices[1], tri.vertices[2], tri.vertices[3])
+
+  # get offcenter
+  offcenter = compute_offcenter(mesh, p, q, r)
+
+  # get indices of all encroached segments
+  indices = [i for i in 1:4:length(mesh.tesselation.edges)]
+  encroachedIndices = filter(i->vertex_encroaches_segment(mesh, i, offcenter), indices)
+
+  if isempty(encroachedIndices)
+    # insert off-center
+    # we need to push the *unscaled point* so we push it straight to tesselation
+    push!(mesh.tesselation, offcenter')
+  else
+    # insert mid points
+    for ei in encroachedIndices
+      # get midpoint and insert it
+      oi = org(mesh.tesselation, ei)
+      di = dest(mesh.tesselation, ei)
+      mp = 0.5 * (mesh.tesselation.vertices[oi] + mesh.tesselation.vertices[di])
+
+      # we need to push the *unscaled point* so we push it straight to tesselation
+      push!(mesh.tesselation, mp')
+    end
+  end
 end

@@ -618,3 +618,32 @@ function insertconstraint!(sd::DelaunayTesselation, v1::Int, v2::Int)
       return ct == OnRightSide ? ci : sym(ci)
     end
 end
+
+"""
+Represents a triangle. It can be constructed from three vertices.
+It finds the edges enclosing the triangle and its inner face.
+"""
+type Triangle
+  vertices::Tuple{VertexIndex, VertexIndex, VertexIndex}
+  edges::Tuple{Int, Int, Int}
+  face::VertexIndex
+
+  function Triangle(sd::DelaunayTesselation, v1::VertexIndex, v2::VertexIndex, v3::VertexIndex)
+    # get starting edge from vertex cache
+    local ei = sd.vertexCache[v1]
+    local e1 = onext(sd, ei)
+    while (e1 != ei && dest(sd, e1) != v2)
+      e1 = onext(sd, e1)
+    end
+    if (dest(sd, e1) != v2)
+      error("Vertices $v1 - $v2 - $v3 do not belong to the same triangle")
+    end
+    local e2 = lnext(sd, e1)
+    if (dest(sd, e2) != v3)
+      error("Vertices $v1 - $v2 - $v3 do not belong to the same triangle")
+    end
+    local e3 = lnext(sd, e2)
+    local face = sym(rot(e1))
+    new((v1, v2, v3), (e1, e2, e3), face)
+  end
+end
