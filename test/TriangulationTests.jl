@@ -5,6 +5,20 @@ import GeometricalPredicates
 #PyPlot.pygui(false)
 
 @testset "TriangulationTests" begin
+  @testset "Iterator" begin
+    local tess =
+     setuptwopointtesselation(
+       [1.375, 1.25],
+       [1.5,1.5])
+
+    local faces = Array{DelaunayMeshes.VertexIndex, 1}()
+    for face in tess
+      push!(faces, face.face)
+    end
+
+    @test sort(faces) == [1,2,3,4,5,6]
+  end
+
   @testset "InsertVertexOnEdge" begin
     local tess =
      setuptwopointtesselation(

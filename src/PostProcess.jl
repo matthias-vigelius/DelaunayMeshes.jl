@@ -1,8 +1,10 @@
-  """
+"""
 Maximal ratio of circumcircle radius and length of shortest edge before  a triangle
 is considered bad.
 """
 beta = sqrt(2.)
+
+minArea = 1e-5
 
 """
     compute_circumcenter_radius(mesh::Mesh, p::VertexIndex, r::VertexIndex, q::VertexIndex)
@@ -148,6 +150,7 @@ at the offcenter or the midpoint of encroached edges.
   it is inserted at the off-center.
 * Otherwise, a new vertex is inserted at the midpoint of each edge that the
   off-center would encroach on.
+  try
 """
 function refine_triangle(mesh::Mesh, tri::Triangle)
 
@@ -162,9 +165,9 @@ function refine_triangle(mesh::Mesh, tri::Triangle)
   encroachedIndices = filter(i->vertex_encroaches_segment(mesh, i, offcenter), indices)
 
   if isempty(encroachedIndices)
-    # insert off-center
+    # insert off-cente  r
     # we need to push the *unscaled point* so we push it straight to tesselation
-    push!(mesh.tesselation, offcenter')
+    push_scaled!(mesh, offcenter')
   else
     # insert mid points
     for ei in encroachedIndices
@@ -174,7 +177,72 @@ function refine_triangle(mesh::Mesh, tri::Triangle)
       mp = 0.5 * (mesh.tesselation.vertices[oi] + mesh.tesselation.vertices[di])
 
       # we need to push the *unscaled point* so we push it straight to tesselation
-      push!(mesh.tesselation, mp')
+      push_scaled!(mesh, mp')
+    end
+  end
+end
+
+"""
+    check_triangle(mesh::Mesh, tri::Triangle)
+
+Checks if the triangle satisfies the quality measure ``r/\bar{pq} \le \beta``,
+with ``r`` the radius of the circumcircle and ``\bar{pq}`` the length of its
+shortest edge.
+
+# Returns
+* `true`, if the triangle satisfies the quality measure.
+"""
+function check_triangle(mesh::Mesh, tri::Triangle)
+  # TODO: we really need to get rid of the double computation of offcenter etc.
+  #       maybe put a nullable in Triangle?
+
+  # check if the area is below limit
+  ra = mesh.tesselation.vertices[tri.vertices[1]]
+  rb = mesh.tesselation.vertices[tri.vertices[2]]
+  rc = mesh.tesselation.vertices[tri.vertices[3]]
+
+  xa, ya = ra[1], ra[2]
+  xb, yb = rb[1], rb[2]
+  xc, yc = rc[1], rc[2]
+
+  area = 0.5*abs((xa-xc)*(yb-ya)-(xa-xb)*(yc-ya))
+  if area < minArea
+    return true
+  end
+
+  # get ordered vertices and circumcircle
+  p, q, r = get_shortest_edge(mesh, tri.vertices[1], tri.vertices[2], tri.vertices[3])
+  sx, sy, rs = DelaunayMeshes.compute_circumcenter_radius(mesh, 1, 2, 3)
+
+  lpq = norm(mesh.tesselation.vertices[p] - mesh.tesselation.vertices[q])
+  return sqrt(rs)/lpq <= DelaunayMeshes.beta
+end
+
+"""
+    refine_valid_triangles!(mesh::
+
+Gets the first triangle that does not satisfy the quality measure or `null`.
+"""
+function refine_valid_triangles!(mesh::Mesh)
+  foundBadTriangle = true
+  counter = 0
+  while foundBadTriangle && counter < 10000
+    counter = counter + 1
+    foundBadTriangle = false
+
+    # get the first valid but bad triangle
+    itState = start(mesh.tesselation)
+    while (!done(mesh.tesselation, itState))
+      tri, itState = next(mesh.tesselation, itState)
+      if (mesh.faceLocation[tri.face] && !check_triangle(mesh, tri))
+
+        # the triangle is bad and valid - we need to refine it
+        refine_triangle(mesh, tri)
+        foundBadTriangle = true
+
+        # break out to outer loop
+        break
+      end
     end
   end
 end

@@ -164,7 +164,11 @@ function onlinesegment(sd::DelaunayTesselation, vi::Int, v1::Int, v2::Int)
   local xi = sd.vertices[vi]
   local x1 = sd.vertices[v1]
   local x2 = sd.vertices[v2]
-  onlinesegment(xi, x1, x2)
+  if (vi == 284)
+    local d1i = normalize(xi - x1)
+    local di2 = normalize(x2 - xi)
+  end
+  return onlinesegment(xi, x1, x2)
 end
 
 function orientation(v1::Point, v2::Point, v3::Point)
@@ -267,8 +271,6 @@ function locatevertex(sd::DelaunayTesselation, x::Point, ei::Int)
     local isrightofDprev = rightof(sd, x, odp)
     local op = convert(Int, !isrightofOnext) + 2 * convert(Int, !isrightofDprev)
 
-    #println("Examining edge $cei found $op ($isrightofOnext, $isrightofDprev)")
-
     if op == 0
       return cei
     elseif op == 1
@@ -342,12 +344,37 @@ function insertpoint!(sd::DelaunayTesselation, x::Point, ei::Int)
     push!(sd.vertices, x)
     push!(sd.vertexCache, -1)
 
+    # check if the point is on any edge of the triangle
+    local onEdgeIndex = Nullable{EdgeIndex}()
     if (onlinesegment(sd, vi, eorg, edest))
-      local ep = oprev(sd, e0)
-      deleteedge!(sd, e0)
-      return insertnewvertex!(sd, ep, vi)
+      onEdgeIndex = Nullable{EdgeIndex}(e0)
+    end
+    if (isnull(onEdgeIndex))
+      local e1 = lnext(sd, e0)
+      if (onlinesegment(sd, vi, org(sd, e1), dest(sd, e1)))
+        onEdgeIndex = Nullable{EdgeIndex}(e1)
+      else
+        local e2 = lnext(sd, e1)
+        if (onlinesegment(sd, vi, org(sd, e2), dest(sd, e2)))
+          onEdgeIndex = Nullable{EdgeIndex}(e2)
+        end
+      end
+    end
+    if (!isnull(onEdgeIndex))
+      local ep = oprev(sd, get(onEdgeIndex))
+      deleteedge!(sd, get(onEdgeIndex))
+      newEdge = insertnewvertex!(sd, ep, vi)
+      return newEdge
     else
-      return insertnewvertex!(sd, e0, vi)
+      newEdge = insertnewvertex!(sd, e0, vi)
+      #=
+      if vi == 284
+        # TODO: problem here seems to be that vertex 284 is not marked as being on edge
+        # reason appears to be that the triangle edge from locate is not the one the
+        # vertex is on
+    end
+      =#
+      return newEdge
     end
   end
 end
@@ -389,7 +416,6 @@ function restoredelaunay!(sd::DelaunayTesselation, startEdge::Int, stopEdge::Int
     local ed = dest(sd, curEdge)
     local td = dest(sd, t)
 
-    #print("$curEdge: $eo $td $ed $xi $(incircle(sd, eo, td, ed, xi)) - ")
     if (rightof(sd, td, curEdge)
        && incircle(sd, eo, td, ed, xi)
        && !isconstraint(sd, curEdge))
@@ -620,7 +646,7 @@ function insertconstraint!(sd::DelaunayTesselation, v1::Int, v2::Int)
 end
 
 """
-Represents a triangle. It can be constructed from three vertices.
+Represents a triangle. It can be constructed from three vertices or a starting edge.
 It finds the edges enclosing the triangle and its inner face.
 """
 type Triangle
@@ -643,7 +669,61 @@ type Triangle
       error("Vertices $v1 - $v2 - $v3 do not belong to the same triangle")
     end
     local e3 = lnext(sd, e2)
-    local face = sym(rot(e1))
+    local face = dest(sd, rot(e1))
     new((v1, v2, v3), (e1, e2, e3), face)
   end
+
+  function Triangle(sd::DelaunayTesselation, e1::EdgeIndex)
+    local e2 = lnext(sd, e1)
+    local e3 = lnext(sd, e2)
+    local v1 = org(sd, e1)
+    local v2 = org(sd, e2)
+    local v3 = org(sd, e3)
+    local face = dest(sd, rot(e1))
+    new((v1, v2, v3), (e1, e2, e3), face)
+  end
+end
+
+# Iterators
+type TrianglesIteratorState
+  curIndex::VertexIndex
+  visited::Array{VertexIndex}
+  curElement::Nullable{VertexIndex}
+end
+
+function findNextIteratorState!(sd::DelaunayTesselation, state::TrianglesIteratorState)
+  # are there more triangles?
+  state.curElement = Nullable{VertexIndex}()
+  state.curIndex = state.curIndex + 2
+  while (state.curIndex < length(sd.edges))
+    cf = org(sd, state.curIndex)
+    if (cf > 0 && cf ∉ state.visited)
+      state.curElement = cf
+      push!(state.visited, cf)
+      break
+    end
+    state.curIndex = state.curIndex + 2
+  end
+
+  return state
+end
+
+function Base.start(sd::DelaunayTesselation)
+  startState = TrianglesIteratorState(0, Array{VertexIndex, 1}(), Nullable{VertexIndex}())
+  state = findNextIteratorState!(sd, startState)
+
+  return state
+end
+
+function Base.done(sd::DelaunayTesselation, state::TrianglesIteratorState)
+  return isnull(state.curElement)
+end
+
+function Base.next(sd::DelaunayTesselation, state::TrianglesIteratorState)
+  ci = rot(state.curIndex)
+  tri = Triangle(sd, ci)
+
+  findNextIteratorState!(sd, state)
+
+  return tri, state
 end

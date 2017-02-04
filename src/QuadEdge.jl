@@ -19,6 +19,7 @@ type SubDivision{T}
 end
 
 typealias VertexIndex Int
+typealias EdgeIndex Int
 
 """
     makeedge!(sd::SubDivision)

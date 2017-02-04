@@ -109,6 +109,19 @@ function unscalepoints(mesh::Mesh, points::Array{Float64, 2})
   return unScaledPoints
 end
 
+function push_scaled!(mesh::Mesh, scaledPoints::Array{Float64, 2})
+  push!(mesh.tesselation, scaledPoints)
+
+  # mark faces as interior
+  local noMissingFaceLocations =
+   length(mesh.tesselation.faces) - length(mesh.faceLocation)
+  local truth = fill(true, noMissingFaceLocations)
+  mesh.faceLocation = [mesh.faceLocation; truth ]
+
+  # invalidate voronoi vertex cache
+  mesh.voronoiVertices = Nullable{Array{Float64, 2}}()
+end
+
 """
     push!(mesh::Mesh, points::Array{Float64, 2})
 
@@ -138,16 +151,7 @@ function push!(mesh::Mesh, points::Array{Float64, 2})
   end
 
   local scaledPoints = scalepoints(mesh, points)
-  push!(mesh.tesselation, scaledPoints)
-
-  # mark faces as interior
-  local noMissingFaceLocations =
-   length(mesh.tesselation.faces) - length(mesh.faceLocation)
-  local truth = fill(true, noMissingFaceLocations)
-  mesh.faceLocation = [mesh.faceLocation; truth ]
-
-  # invalidate voronoi vertex cache
-  mesh.voronoiVertices = Nullable{Array{Float64, 2}}()
+  push_scaled!(mesh, scaledPoints)
 end
 
 """

@@ -10,7 +10,9 @@ import GeometricalPredicates
 
 import Base.convert
 import Base.push!
-
+import Base.next
+import Base.done
+import Base.start
 
 include("QuadEdge.jl")
 include("Triangulation.jl")

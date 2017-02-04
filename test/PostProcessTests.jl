@@ -1,6 +1,52 @@
-#import Winston
+import Winston
 
 @testset "PostProcessTests" begin
+  @testset "refine_valid_triangles" begin
+    local mesh = DelaunayMeshes.Mesh()
+    DelaunayMeshes.setboundingbox(mesh, [-15.0, 15.0, -15.0, 15.0])
+    # seed rng and store seed in file
+    local seed = 2628265373
+    #local seed = rand(UInt32)
+    local fs = open("refine_valid_triangles.seed", "w")
+    write(fs, string(seed))
+    close(fs)
+
+    # push some random vertices
+    srand(seed)
+    local nvertices = 200
+    local points = rand(Float64, nvertices, 2)*30. - 15.
+    push!(mesh, points)
+
+    local nringvertices = 40
+
+    # push inner ring constraint vertices
+    local θ = linspace(0., 2.*π, nringvertices + 1)[1:end-1]
+    local rinner = 5.
+    local router = 10.
+    local innerRing = rinner * [cos(θ'); sin(θ')]'
+    local outerRing = router * [cos(θ'); sin(θ')]'
+
+    push!(mesh, innerRing)
+    push!(mesh, outerRing)
+
+    # add constraints
+    local innerConstraintVertexList = [x for x in (nvertices+3+nringvertices):-1:(nvertices+3+1)]
+    local outerConstraintVertexList = [x for x in (nvertices+3+nringvertices+1):(nvertices + 3 + 2*nringvertices)]
+    DelaunayMeshes.addconstraint!(mesh, innerConstraintVertexList)
+    DelaunayMeshes.addconstraint!(mesh, outerConstraintVertexList)
+
+    # refine
+    DelaunayMeshes.refine_valid_triangles!(mesh)
+
+    # plot it
+    xc, yc = DelaunayMeshes.getdelaunaycoordinates(mesh.tesselation)
+    p = Winston.FramedPlot(aspect_ratio=1
+      #,xrange=[1.496 1.50], yrange=[1.256, 1.26]
+      )
+    Winston.add(p, Winston.Curve(xc, yc))
+    Winston.savefig(p, "refine_valid_triangles.svg")
+  end
+
   @testset "refine_triangle" begin
     local mesh = DelaunayMeshes.Mesh()
     DelaunayMeshes.setboundingbox(mesh, [-15.0, 15.0, -15.0, 15.0])
