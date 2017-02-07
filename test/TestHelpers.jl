@@ -234,3 +234,26 @@ function create_mesh_with_triangle(cx::Float64, cy::Float64, r::Float64, t1::Flo
 
     return mesh
 end
+
+function check_conformity(sd::DelaunayMeshes.DelaunayTesselation)
+  for ei in 1:2:(size(sd.edges)[1])
+
+    # check that edge is part of a triangle (not more than three vertices)
+    local e1 = DelaunayMeshes.lnext(sd, ei)
+    local e2 = DelaunayMeshes.lnext(sd, e1)
+    local e3 = DelaunayMeshes.lnext(sd, e2)
+    @test e3 == ei
+
+    # check that any vertex that is on this segment is either org or dest
+    local vo = DelaunayMeshes.org(sd, ei)
+    local vd = DelaunayMeshes.dest(sd, ei)
+    local x1 = sd.vertices[vo]
+    local x2 = sd.vertices[vd]
+
+    for xi in sd.vertices
+      if !((xi ≈ x1) || (xi ≈ x2))
+        @test !DelaunayMeshes.onlinesegment(xi, x1, x2)
+      end
+    end
+  end
+end

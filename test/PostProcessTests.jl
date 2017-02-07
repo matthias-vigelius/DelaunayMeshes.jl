@@ -38,6 +38,26 @@
     # refine
     DelaunayMeshes.refine_valid_triangles!(mesh)
 
+    # check face locations
+    local innerBoundaryEdge = findedgeconnectingvertices(mesh.tesselation, nvertices+3+1, nvertices+3+2)
+    @test mesh.tesselation.edges[innerBoundaryEdge].constraintType == DelaunayMeshes.OnLeftSide
+    local insideFaces = DelaunayMeshes.getfacesinsideregion(mesh, DelaunayMeshes.rot(innerBoundaryEdge))
+    local expLoc = fill(false, length(mesh.tesselation.faces))
+    expLoc[insideFaces] = true
+    @test expLoc == mesh.faceLocation
+
+    # check conformity of triangles
+    check_conformity(mesh.tesselation)
+
+    # check that all triangles are high quality
+    for tri in mesh.tesselation
+      if (mesh.faceLocation[tri.face])
+        @test DelaunayMeshes.check_triangle(mesh, tri)
+      end
+    end
+
+    #        - usual checks (vertexCache, constraints)
+
     #=
     # plot it
     xc, yc = DelaunayMeshes.getdelaunaycoordinates(mesh.tesselation)
@@ -48,10 +68,7 @@
     Winston.savefig(p, "refine_valid_triangles.svg")
     =#
 
-    # TODO:  - check face locations (not working yet)
-    #        - check conformity of triangles
-    #        - check that all triangles are high quality
-    #        - usual checks (vertexCache, constraints)
+
   end
 
   @testset "refine_triangle" begin
