@@ -113,6 +113,14 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "index.html#DelaunayMeshes.Triangle",
+    "page": "API",
+    "title": "DelaunayMeshes.Triangle",
+    "category": "Type",
+    "text": "Represents a triangle. It can be constructed from three vertices or a starting edge. It finds the edges enclosing the triangle and its inner face.\n\n\n\n"
+},
+
+{
     "location": "index.html#Base.convert-Tuple{Type{DiffEqPDEBase.SimpleFEMMesh},DelaunayMeshes.Mesh}",
     "page": "API",
     "title": "Base.convert",
@@ -134,6 +142,14 @@ var documenterSearchIndex = {"docs": [
     "title": "DelaunayMeshes.base",
     "category": "Method",
     "text": "base(ei::Int)\n\nComputes base index of index ei.\n\n\n\n"
+},
+
+{
+    "location": "index.html#DelaunayMeshes.check_triangle-Tuple{DelaunayMeshes.Mesh,DelaunayMeshes.Triangle}",
+    "page": "API",
+    "title": "DelaunayMeshes.check_triangle",
+    "category": "Method",
+    "text": "check_triangle(mesh::Mesh, tri::Triangle)\n\nChecks if the triangle satisfies the quality measure rarpq le eta, with r the radius of the circumcircle and arpq the length of its shortest edge.\n\nReturns\n\ntrue, if the triangle satisfies the quality measure.\n\n\n\n"
 },
 
 {
@@ -206,6 +222,14 @@ var documenterSearchIndex = {"docs": [
     "title": "DelaunayMeshes.findintersectingedges",
     "category": "Method",
     "text": "findintersectingedges(sd::DelaunayTesselation, v1::Int, v2::Int, eg::Int)\n\nFinds all edges of the given tesselation that intersect with a virtual edge from v1 to v2.\n\n\n\n"
+},
+
+{
+    "location": "index.html#DelaunayMeshes.get_shortest_edge-Tuple{DelaunayMeshes.Mesh,Int64,Int64,Int64}",
+    "page": "API",
+    "title": "DelaunayMeshes.get_shortest_edge",
+    "category": "Method",
+    "text": "\"     get_shortest_edge(mesh::Mesh, ai::VertexIndex, bi::VertexIndex, ci::VertexIndex)\n\nGiven a triangle with CCW-ordered vertices ai - bi - ci, it computes the edge length and returns a sorted tuple p - q - r such that the triangle p - q - r has its shortest edge between p and q.\n\n\n\n"
 },
 
 {
@@ -334,6 +358,22 @@ var documenterSearchIndex = {"docs": [
     "title": "DelaunayMeshes.pointsintersect",
     "category": "Method",
     "text": "pointsintersect(p1::Point, q1::Point, p2::Point, q2::Point)\n\nChecks if line segments given by their end points intersect.\n\nRemarks\n\nTaken from geeksforgeeks.org/check-if-two-given-line-segments-intersect\n\n\n\n"
+},
+
+{
+    "location": "index.html#DelaunayMeshes.refine_triangle-Tuple{DelaunayMeshes.Mesh,DelaunayMeshes.Triangle}",
+    "page": "API",
+    "title": "DelaunayMeshes.refine_triangle",
+    "category": "Method",
+    "text": "function refine_triangle(mesh::Mesh, tri::Triangle)\n\nRefines the triangle located to the left of edge ei by adding a new vertex at the offcenter or the midpoint of encroached edges.\n\nRemarks\n\nIf a new vertex at the off-center of the triangle does not encroach any segments it is inserted at the off-center.\nOtherwise, a new vertex is inserted at the midpoint of each edge that the off-center would encroach on. try\n\n\n\n"
+},
+
+{
+    "location": "index.html#DelaunayMeshes.refine_valid_triangles!-Tuple{DelaunayMeshes.Mesh}",
+    "page": "API",
+    "title": "DelaunayMeshes.refine_valid_triangles!",
+    "category": "Method",
+    "text": "refine_valid_triangles!(mesh::\n\nGets the first triangle that does not satisfy the quality measure or null.\n\n\n\n"
 },
 
 {
