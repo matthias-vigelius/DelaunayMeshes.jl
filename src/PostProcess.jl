@@ -177,7 +177,27 @@ function refine_triangle(mesh::Mesh, tri::Triangle)
       mp = 0.5 * (mesh.tesselation.vertices[oi] + mesh.tesselation.vertices[di])
 
       # we need to push the *unscaled point* so we push it straight to tesselation
+      newVertexIndex = length(mesh.tesselation.vertices) + 1
       push_scaled!(mesh, mp')
+
+      # we need to fix the face locations for the new faces.. we do that by
+      # iterating over the star of the new vertex, starting at the segment
+      startEdge = mesh.tesselation.vertexCache[newVertexIndex]
+      while (!isconstraint(mesh.tesselation, startEdge))
+        startEdge = onext(mesh.tesselation, startEdge)
+      end
+      faceIsInside = mesh.tesselation.edges[startEdge].constraintType == OnRightSide
+      curEdge = startEdge
+      while (true)
+        # mark left face as inside/outside
+        mesh.faceLocation[lface(mesh.tesselation, curEdge)] = faceIsInside
+        curEdge = onext(mesh.tesselation, curEdge)
+        if (curEdge == startEdge)
+          break
+        elseif (isconstraint(mesh.tesselation, curEdge))
+          faceIsInside = !faceIsInside
+        end
+      end
     end
   end
 end

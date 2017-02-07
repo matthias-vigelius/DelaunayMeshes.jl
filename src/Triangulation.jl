@@ -361,19 +361,26 @@ function insertpoint!(sd::DelaunayTesselation, x::Point, ei::Int)
       end
     end
     if (!isnull(onEdgeIndex))
-      local ep = oprev(sd, get(onEdgeIndex))
-      deleteedge!(sd, get(onEdgeIndex))
-      newEdge = insertnewvertex!(sd, ep, vi)
-      return newEdge
+      # if the edge is a segment edge we need to repair segment markers
+      local ct = sd.edges[get(onEdgeIndex)].constraintType
+      if (ct == NoConstraint)
+        local ep = oprev(sd, get(onEdgeIndex))
+        deleteedge!(sd, get(onEdgeIndex))
+        newEdge = insertnewvertex!(sd, ep, vi)
+        return newEdge
+      else
+        local lp = lprev(sd, get(onEdgeIndex))
+        local ln = lnext(sd, get(onEdgeIndex))
+        deleteedge!(sd, get(onEdgeIndex))
+        newEdge = insertnewvertex!(sd, lp, vi)
+        local aln = lnext(sd, lp)
+        local apn = lprev(sd, ln)
+        setconstraint!(sd, aln, ct)
+        setconstraint!(sd, apn, ct)
+        return newEdge
+      end
     else
       newEdge = insertnewvertex!(sd, e0, vi)
-      #=
-      if vi == 284
-        # TODO: problem here seems to be that vertex 284 is not marked as being on edge
-        # reason appears to be that the triangle edge from locate is not the one the
-        # vertex is on
-    end
-      =#
       return newEdge
     end
   end
@@ -684,7 +691,7 @@ type Triangle
   end
 end
 
-# Iterators
+# Iterates all triangles
 type TrianglesIteratorState
   curIndex::VertexIndex
   visited::Array{VertexIndex}

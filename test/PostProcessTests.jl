@@ -1,4 +1,4 @@
-import Winston
+#import Winston
 
 @testset "PostProcessTests" begin
   @testset "refine_valid_triangles" begin
@@ -38,6 +38,7 @@ import Winston
     # refine
     DelaunayMeshes.refine_valid_triangles!(mesh)
 
+    #=
     # plot it
     xc, yc = DelaunayMeshes.getdelaunaycoordinates(mesh.tesselation)
     p = Winston.FramedPlot(aspect_ratio=1
@@ -45,6 +46,12 @@ import Winston
       )
     Winston.add(p, Winston.Curve(xc, yc))
     Winston.savefig(p, "refine_valid_triangles.svg")
+    =#
+
+    # TODO:  - check face locations (not working yet)
+    #        - check conformity of triangles
+    #        - check that all triangles are high quality
+    #        - usual checks (vertexCache, constraints)
   end
 
   @testset "refine_triangle" begin
@@ -99,6 +106,21 @@ import Winston
     midpoint2 = 0.5*(mesh.tesselation.vertices[5] + mesh.tesselation.vertices[6])
     @test_approx_eq(mesh.tesselation.vertices[7]', midpoint1')
     @test_approx_eq(mesh.tesselation.vertices[8]', midpoint2')
+
+    # check that the edges going to and from these vertices are marked as
+    # segments
+    local e47 = findedgeconnectingvertices(mesh.tesselation, 4, 7)
+    local e75 = findedgeconnectingvertices(mesh.tesselation, 7, 5)
+    @test mesh.tesselation.edges[e47].constraintType == DelaunayMeshes.OnLeftSide
+    @test mesh.tesselation.edges[e75].constraintType == DelaunayMeshes.OnLeftSide
+    @test mesh.tesselation.edges[DelaunayMeshes.sym(e47)].constraintType == DelaunayMeshes.OnRightSide
+    @test mesh.tesselation.edges[DelaunayMeshes.sym(e75)].constraintType == DelaunayMeshes.OnRightSide
+    local e58 = findedgeconnectingvertices(mesh.tesselation, 5, 8)
+    local e86 = findedgeconnectingvertices(mesh.tesselation, 8, 6)
+    @test mesh.tesselation.edges[e58].constraintType == DelaunayMeshes.OnLeftSide
+    @test mesh.tesselation.edges[e86].constraintType == DelaunayMeshes.OnLeftSide
+    @test mesh.tesselation.edges[DelaunayMeshes.sym(e58)].constraintType == DelaunayMeshes.OnRightSide
+    @test mesh.tesselation.edges[DelaunayMeshes.sym(e86)].constraintType == DelaunayMeshes.OnRightSide
 
     #=
     # plot it
