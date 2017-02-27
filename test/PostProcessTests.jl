@@ -56,7 +56,8 @@
       end
     end
 
-    #        - usual checks (vertexCache, constraints)
+    # usual checks
+    testvertexcache(mesh.tesselation)
 
     #=
     # plot it
